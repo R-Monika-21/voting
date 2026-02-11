@@ -1,0 +1,22 @@
+# .gitignore
+
+# Environment / secrets
+.env
+*.env
+.env.local
+.env.development
+.env.production
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.env/
+*.db
+*.sqlite3
+
+# Logs
+*.log
