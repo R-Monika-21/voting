@@ -14,3 +14,4 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = os.environ.get('SQL_ECHO', 'False').lower() == 'true'
+

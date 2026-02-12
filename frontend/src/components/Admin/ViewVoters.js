@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'; // install: npm install @heroicons/react
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 const ViewVoter = () => {
   const [voters, setVoters] = useState([]);
@@ -51,7 +51,16 @@ const ViewVoter = () => {
   };
 
   const handleBack = () => {
-    setSelectedVoter(null);
+    if (selectedVoter) {
+      // From voter details → back to list
+      setSelectedVoter(null);
+    } else {
+      // From list → back to admin dashboard
+      // Replace with your actual navigation method
+      window.location.href = '/admin-dashboard'; // Option 1: simple redirect
+      // OR if using react-router:
+      // navigate('/admin-dashboard');
+    }
   };
 
   return (
@@ -64,9 +73,11 @@ const ViewVoter = () => {
             <button
               onClick={handleBack}
               className={`flex items-center text-gray-700 hover:text-gray-900 transition mr-4 ${
-                !selectedVoter ? 'opacity-50 cursor-not-allowed' : ''
+                !selectedVoter && !window.location.pathname.includes('/admin') 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : ''
               }`}
-              disabled={!selectedVoter}
+              disabled={false} // always enabled now
             >
               <ArrowLeftIcon className="w-6 h-6 mr-2" />
               Back
@@ -112,14 +123,19 @@ const ViewVoter = () => {
                   <option value="4">4</option>
                   <option value="5">5</option>
                 </select>
-                <input
-                  type="text"
+                <select
                   name="major"
-                  placeholder="Major (B.E / B.Tech / M.E ...)"
                   value={filters.major}
                   onChange={handleFilterChange}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                />
+                >
+                  <option value="">Major</option>
+                  <option value="B.E">B.E</option>
+                  <option value="B.Tech">B.Tech</option>
+                  <option value="M.E">M.E</option>
+                  <option value="M.Tech">M.Tech</option>
+                  <option value="MBA">MBA</option>
+                </select>
                 <input
                   type="text"
                   name="course"
@@ -226,7 +242,7 @@ const ViewVoter = () => {
                 onClick={handleBack}
                 className="px-8 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition font-medium shadow-sm"
               >
-                Back to List
+                Close
               </button>
             </div>
           </div>
