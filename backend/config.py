@@ -5,7 +5,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'change-this-in-production-very-secure-random-string'
 
     # Try to read database URL from environment variable first
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
 
     # If not set in environment → fallback to local SQLite (safe for development)
     if not SQLALCHEMY_DATABASE_URI:

@@ -14,6 +14,9 @@ import AddCandidate from './components/Admin/AddCandidate';
 import ViewElections from './components/Admin/ViewElections';
 import ViewVoters from './components/Admin/ViewVoters';
 import ResultManagement from './components/Admin/ResultManagement';
+import VoterViewElections from './components/Voter/VoterViewElections';
+import VoterViewCandidates from './components/Voter/VoterViewCandidates';
+import VoterViewResults from './components/Voter/VoterViewResults'; 
 // src/App.js
 // ... imports ...
 
@@ -48,7 +51,13 @@ function App() {
               <VoterDashboard />
             </ProtectedRoute>
           }
-        />
+        >
+        <Route index element={<VoterViewElections />} />
+        <Route path="view-elections" element={<VoterViewElections />} />
+        <Route path="view-candidates" element={<VoterViewCandidates />} />
+        <Route path="view-results" element={<VoterViewResults />} />
+        </Route>
+     
 
         <Route path="*" element={<div className="p-10 text-center">404 - Page Not Found</div>} />
       </Routes>

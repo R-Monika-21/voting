@@ -8,8 +8,8 @@ const CreateElection = () => {
 
   const [formData, setFormData] = useState({
     election_name: '',
-    start_date: '',
-    start_time: '',
+    election_date: '',
+    election_time: '',
     end_date: '',
     end_time: '',
     result_date: '',
@@ -38,8 +38,8 @@ const CreateElection = () => {
         setMessage('Election created successfully!');
         setFormData({
           election_name: '',
-          start_date: '',
-          start_time: '',
+          election_date: '',
+          election_time: '',
           end_date: '',
           end_time: '',
           result_date: '',
@@ -113,16 +113,16 @@ const CreateElection = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label
-                htmlFor="start_date"
+                htmlFor="election_date"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Start Date <span className="text-red-600">*</span>
               </label>
               <input
                 type="date"
-                id="start_date"
-                name="start_date"
-                value={formData.start_date}
+                id="election_date"
+                name="election_date"
+                value={formData.election_date}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
@@ -130,16 +130,16 @@ const CreateElection = () => {
             </div>
             <div>
               <label
-                htmlFor="start_time"
+                htmlFor="election_time"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Start Time <span className="text-red-600">*</span>
               </label>
               <input
                 type="time"
-                id="start_time"
-                name="start_time"
-                value={formData.start_time}
+                id="election_time"
+                name="election_time"
+                value={formData.election_time}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
