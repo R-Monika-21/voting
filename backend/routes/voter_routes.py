@@ -1,10 +1,15 @@
+# backend/routes/voter_routes.py
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+from datetime import datetime
 
-# Import shared db and Voter model
+# Import shared db and models
 from extensions import db
 from models.voter import Voter
+from models.election import Election
+from models.candidate import Candidate
+from models.vote import Vote      # ← required for voting
 
 voter_bp = Blueprint('voter', __name__, url_prefix='/api/voter')
 
@@ -87,8 +92,6 @@ def voter_login():
 
     # Create JWT token
     access_token = create_access_token(identity=str(voter.id))
-
-    
 
     return jsonify({
         "success": True,
@@ -182,6 +185,7 @@ def get_voter_profile():
             "error": str(e)
         }), 500
 
+
 # ── Update current voter's profile ──
 @voter_bp.route('/profile', methods=['PUT'])
 @jwt_required()
@@ -256,3 +260,149 @@ def update_voter_profile():
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": "Failed to update profile", "error": str(e)}), 500
+
+
+# ────────────────────────────────────────────────────────────────
+#  Existing route: list elections + candidates
+# ────────────────────────────────────────────────────────────────
+@voter_bp.route('/elections-with-candidates', methods=['GET'])
+@jwt_required()
+def get_elections_with_candidates():
+    try:
+        # You can add .filter(Election.election_date >= date.today()) later if needed
+        elections = Election.query.order_by(Election.election_date.desc()).all()
+
+        result = []
+        for election in elections:
+            candidates = Candidate.query.filter_by(election_id=election.id).all()
+
+            election_data = {
+                "id": election.id,
+                "election_name": election.election_name,
+                "candidates": [
+                    {
+                        "id": c.id,
+                        "name": c.name,
+                        "roll_no": c.roll_no,
+                        "major": c.major,
+                        "course": c.course,
+                        "year": c.year,
+                        "email": c.email,
+                        "symbol_url": c.get_symbol_url()
+                        # ← uses the property from model
+                    }
+                    for c in candidates
+                ]
+            }
+            result.append(election_data)
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "error": "Failed to load election data",
+            "detail": str(e)
+        }), 500
+
+
+# ────────────────────────────────────────────────────────────────
+#  NEW: Get candidates + whether the voter has already voted (single election)
+# ────────────────────────────────────────────────────────────────
+@voter_bp.route('/elections/<int:election_id>/vote-status', methods=['GET'])
+@jwt_required()
+def get_election_vote_status(election_id):
+    """
+    Returns:
+    - election basic info
+    - list of candidates with vote count
+    - has_voted: true/false for current voter
+    """
+    try:
+        election = Election.query.get_or_404(election_id)
+        candidates = Candidate.query.filter_by(election_id=election_id).all()
+
+        has_voted = Vote.query.filter_by(
+            voter_id=get_jwt_identity(),
+            election_id=election_id
+        ).first() is not None
+
+        return jsonify({
+            "election": {
+                "id": election.id,
+                "election_name": election.election_name,
+                "election_status": election.election_status,
+                "start": f"{election.election_date.isoformat()} {election.election_time.strftime('%H:%M')}",
+                "end":   f"{election.end_date.isoformat()}   {election.end_time.strftime('%H:%M')}",
+            },
+            "candidates": [
+                {
+                    "id": c.id,
+                    "name": c.name,
+                    "roll_no": c.roll_no,
+                    "major": c.major,
+                    "course": c.course,
+                    "year": c.year,
+                    "symbol_url": c.get_symbol_url(),
+                    "count": c.count or 0
+                }
+                for c in candidates
+            ],
+            "has_voted": has_voted
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": "Failed to load vote status", "detail": str(e)}), 500
+
+
+# ────────────────────────────────────────────────────────────────
+#  NEW: Submit vote (increments candidate.count, prevents double vote)
+# ────────────────────────────────────────────────────────────────
+@voter_bp.route('/elections/<int:election_id>/vote', methods=['POST'])
+@jwt_required()
+def submit_vote(election_id):
+    voter_id = get_jwt_identity()
+    data = request.get_json(silent=True) or {}
+
+    candidate_id = data.get('candidate_id')
+    if not candidate_id:
+        return jsonify({"error": "candidate_id is required"}), 400
+
+    try:
+        election = Election.query.get_or_404(election_id)
+        candidate = Candidate.query.get_or_404(candidate_id)
+
+        if candidate.election_id != election_id:
+            return jsonify({"error": "Candidate does not belong to this election"}), 400
+
+        # Check voting period
+        now = datetime.now()
+        start_dt = datetime.combine(election.election_date, election.election_time)
+        end_dt   = datetime.combine(election.end_date, election.end_time)
+
+        if now < start_dt or now > end_dt:
+            return jsonify({"error": "Voting is not open at this time"}), 403
+
+        # Check for existing vote (unique constraint also protects, but we give nice message)
+        if Vote.query.filter_by(voter_id=voter_id, election_id=election_id).first():
+            return jsonify({"error": "You have already voted in this election"}), 403
+
+        # Record vote
+        new_vote = Vote(
+            voter_id=voter_id,
+            candidate_id=candidate_id,
+            election_id=election_id
+        )
+
+        # Increment vote count
+        candidate.count = (candidate.count or 0) + 1
+
+        db.session.add(new_vote)
+        db.session.commit()
+
+        return jsonify({"message": "Vote recorded successfully"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Failed to record vote", "detail": str(e)}), 500

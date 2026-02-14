@@ -5,7 +5,8 @@ import {
   UserCircleIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
-import { useNavigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet, useLocation } from "react-router-dom";
+
 
 
 const VoterDashboard = () => {
@@ -50,6 +51,12 @@ const VoterDashboard = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
+  const location = useLocation();
+
+const isDashboardHome =
+  location.pathname === "/voter-dashboard" ||
+  location.pathname === "/voter-dashboard/";
+
 
   const handleChange = (e) => {
     setFormData({
@@ -179,74 +186,79 @@ const VoterDashboard = () => {
         </div>
       </div>
 
-      {/* ✅ Big Welcome Section */}
-      <div className="text-center mt-10">
-        <h2 className="text-4xl font-extrabold text-indigo-700">
-          Welcome, {voter.student_name} 👋
+      {/* 🔷 Main Content Area */}
+{isDashboardHome ? (
+  <>
+    {/* ✅ Big Welcome Section */}
+    <div className="text-center mt-10">
+      <h2 className="text-4xl font-extrabold text-indigo-700">
+        Welcome, {voter.student_name} 👋
+      </h2>
+      <p className="text-gray-600 mt-3 text-lg">
+        Your voice matters. Your vote shapes the future.
+      </p>
+    </div>
+
+    {/* 🔷 Detailed Pledge Section */}
+    <div className="flex justify-center mt-14 px-6">
+      <div className="bg-white shadow-xl rounded-2xl p-12 max-w-5xl w-full border-t-4 border-indigo-600">
+        <h2 className="text-3xl font-bold text-indigo-700 mb-10 text-center">
+          Voter’s Declaration of Integrity
         </h2>
-        <p className="text-gray-600 mt-3 text-lg">
-          Your voice matters. Your vote shapes the future.
-        </p>
-      </div>
 
-      {/* 🔷 Detailed Pledge Section */}
-      <div className="flex justify-center mt-14 px-6">
-        <div className="bg-white shadow-xl rounded-2xl p-12 max-w-5xl w-full border-t-4 border-indigo-600">
-          <h2 className="text-3xl font-bold text-indigo-700 mb-10 text-center">
-            Voter’s Declaration of Integrity
-          </h2>
-
-          
-          <div className="space-y-6 text-gray-700 text-[17px] leading-relaxed">
-            <p>
-              ✔ I solemnly affirm that I shall exercise my right to vote with complete honesty,
+        <div className="space-y-6 text-gray-700 text-[17px] leading-relaxed">
+          <p>
+            ✔ I solemnly affirm that I shall exercise my right to vote with complete honesty,
               integrity, and responsibility. I understand that voting is not merely a right,
               but a significant civic duty that contributes directly to the strength and
               credibility of our democratic process.
-            </p>
+          </p>
 
-            <p>
-              ✔ I pledge that I will cast my vote independently and without any form of
+          <p>
+            ✔ I pledge that I will cast my vote independently and without any form of
               coercion, manipulation, or external influence. My decision will be based
               solely on informed judgment, fairness, and the welfare of the institution
               and its members.
-            </p>
+          </p>
 
-            <p>
-              ✔ I affirm that I will not accept, offer, or participate in any bribery,
+          <p>
+            ✔ I affirm that I will not accept, offer, or participate in any bribery,
               inducement, or unethical practice that may compromise the transparency
-              and legitimacy of the election process.
-            </p>
+              and legitimacy of the election process
+          </p>
 
-            <p>
-              ✔ I commit to maintaining the secrecy of the ballot and respecting the
+          <p>
+            ✔ I commit to maintaining the secrecy of the ballot and respecting the
               confidentiality of every individual’s voting choice. I acknowledge
               that safeguarding electoral privacy is fundamental to ensuring fairness
               and equality in the democratic system.
-            </p>
+          </p>
 
-            <p>
-              ✔ I pledge to refrain from impersonation, duplicate voting, digital
+          <p>
+             ✔ I pledge to refrain from impersonation, duplicate voting, digital
               manipulation, or any activity that may undermine the integrity of
               the online voting platform.
-            </p>
-
-            <p>
+          </p>
+          <p>
               ✔ I further promise to uphold the principles of accountability,
               transparency, and ethical conduct throughout the electoral process,
               and to report any irregularities or misconduct that I may observe.
             </p>
 
-            <p className="font-semibold text-center text-indigo-700 mt-10">
-              With full understanding of my civic responsibility, I make this pledge
-              voluntarily and with sincere commitment to democratic values.
-            </p>
-          </div>
+          <p className="font-semibold text-center text-indigo-700 mt-10">
+            With full understanding of my civic responsibility,
+            I make this pledge voluntarily.
+          </p>
         </div>
       </div>
-      <div className="mt-16 px-6">
-  <Outlet />
-</div>
+    </div>
+  </>
+) : (
+  <div className="mt-16 px-6">
+    <Outlet />
+  </div>
+)}
+
 
       {/* 🔷 Profile Modal */}
       {showProfile && (
