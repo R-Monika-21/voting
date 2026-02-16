@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 
-
+import API from "../api";
 
 const VoterDashboard = () => {
   const [voter, setVoter] = useState(null);
@@ -25,18 +25,16 @@ const VoterDashboard = () => {
   });
 
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const location = useLocation();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
       return;
     }
 
-    axios
-      .get("http://localhost:5000/api/voter/profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    API.get("/api/voter/profile")
       .then((res) => {
         setVoter(res.data);
         setFormData(res.data);
@@ -45,18 +43,16 @@ const VoterDashboard = () => {
         localStorage.removeItem("token");
         navigate("/login");
       });
-  }, [token, navigate]);
+  }, [navigate]); // ✅ removed token from dependency
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
-  const location = useLocation();
 
-const isDashboardHome =
-  location.pathname === "/voter-dashboard" ||
-  location.pathname === "/voter-dashboard/";
-
+  const isDashboardHome =
+    location.pathname === "/voter-dashboard" ||
+    location.pathname === "/voter-dashboard/";
 
   const handleChange = (e) => {
     setFormData({
@@ -67,13 +63,7 @@ const isDashboardHome =
 
   const handleUpdate = async () => {
     try {
-      const res = await axios.put(
-        "http://localhost:5000/api/voter/profile",
-        formData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await API.put("/api/voter/profile", formData);
 
       const updatedVoter = res.data.voter || res.data;
       setVoter(updatedVoter);
@@ -97,14 +87,13 @@ const isDashboardHome =
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Success Message */}
       {successMessage && (
         <div className="fixed top-5 right-5 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
           {successMessage}
         </div>
       )}
 
-      {/* 🔷 Top Navbar */}
+      {/* Top Navbar */}
       <div className="bg-indigo-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
         <h1 className="text-xl font-bold">Voter Dashboard</h1>
 
@@ -186,81 +175,82 @@ const isDashboardHome =
         </div>
       </div>
 
-      {/* 🔷 Main Content Area */}
-{isDashboardHome ? (
-  <>
-    {/* ✅ Big Welcome Section */}
-    <div className="text-center mt-10">
-      <h2 className="text-4xl font-extrabold text-indigo-700">
-        Welcome, {voter.student_name} 👋
-      </h2>
-      <p className="text-gray-600 mt-3 text-lg">
-        Your voice matters. Your vote shapes the future.
-      </p>
-    </div>
-
-    {/* 🔷 Detailed Pledge Section */}
-    <div className="flex justify-center mt-14 px-6">
-      <div className="bg-white shadow-xl rounded-2xl p-12 max-w-5xl w-full border-t-4 border-indigo-600">
-        <h2 className="text-3xl font-bold text-indigo-700 mb-10 text-center">
-          Voter’s Declaration of Integrity
-        </h2>
-
-        <div className="space-y-6 text-gray-700 text-[17px] leading-relaxed">
-          <p>
-            ✔ I solemnly affirm that I shall exercise my right to vote with complete honesty,
-              integrity, and responsibility. I understand that voting is not merely a right,
-              but a significant civic duty that contributes directly to the strength and
-              credibility of our democratic process.
-          </p>
-
-          <p>
-            ✔ I pledge that I will cast my vote independently and without any form of
-              coercion, manipulation, or external influence. My decision will be based
-              solely on informed judgment, fairness, and the welfare of the institution
-              and its members.
-          </p>
-
-          <p>
-            ✔ I affirm that I will not accept, offer, or participate in any bribery,
-              inducement, or unethical practice that may compromise the transparency
-              and legitimacy of the election process
-          </p>
-
-          <p>
-            ✔ I commit to maintaining the secrecy of the ballot and respecting the
-              confidentiality of every individual’s voting choice. I acknowledge
-              that safeguarding electoral privacy is fundamental to ensuring fairness
-              and equality in the democratic system.
-          </p>
-
-          <p>
-             ✔ I pledge to refrain from impersonation, duplicate voting, digital
-              manipulation, or any activity that may undermine the integrity of
-              the online voting platform.
-          </p>
-          <p>
-              ✔ I further promise to uphold the principles of accountability,
-              transparency, and ethical conduct throughout the electoral process,
-              and to report any irregularities or misconduct that I may observe.
+      {/* Main Content */}
+      {isDashboardHome ? (
+        <>
+          <div className="text-center mt-10">
+            <h2 className="text-4xl font-extrabold text-indigo-700">
+              Welcome, {voter.student_name} 👋
+            </h2>
+            <p className="text-gray-600 mt-3 text-lg">
+              Your voice matters. Your vote shapes the future.
             </p>
+          </div>
 
-          <p className="font-semibold text-center text-indigo-700 mt-10">
-            With full understanding of my civic responsibility,
-            I make this pledge voluntarily.
-          </p>
+          <div className="flex justify-center mt-14 px-6">
+            <div className="bg-white shadow-xl rounded-2xl p-12 max-w-5xl w-full border-t-4 border-indigo-600">
+              <h2 className="text-3xl font-bold text-indigo-700 mb-10 text-center">
+                Voter’s Declaration of Integrity
+              </h2>
+
+              <div className="space-y-6 text-gray-700 text-[17px] leading-relaxed">
+                <p>
+  ✔ I solemnly affirm that I shall exercise my right to vote with complete
+  honesty, integrity, and responsibility. I recognize that voting is not merely
+  a personal privilege, but a fundamental democratic duty that directly
+  influences the future, fairness, and credibility of our institution.
+</p>
+
+<p>
+  ✔ I pledge that I will cast my vote independently, guided solely by informed
+  judgment, fairness, and merit. I will not allow any form of pressure,
+  coercion, favoritism, personal bias, or external influence to affect my
+  decision.
+</p>
+
+<p>
+  ✔ I affirm that I will neither accept nor offer any bribe, incentive, gift,
+  promise, or undue advantage that may compromise the transparency and
+  legitimacy of the electoral process. I understand that ethical conduct is
+  essential for a fair and trustworthy election.
+</p>
+
+<p>
+  ✔ I commit to preserving the secrecy of my ballot and respecting the
+  confidentiality of every voter’s choice. I acknowledge that protecting voter
+  privacy is vital to maintaining equality, fairness, and confidence in the
+  democratic system.
+</p>
+
+<p>
+  ✔ I pledge to refrain from impersonation, duplicate voting, digital
+  manipulation, misuse of credentials, or any activity that may undermine the
+  security, integrity, and authenticity of the online voting platform.
+</p>
+
+<p>
+  ✔ I promise to uphold accountability, transparency, and ethical behavior
+  throughout the electoral process. Furthermore, I will responsibly report any
+  irregularities, misconduct, or suspicious activities that may threaten the
+  fairness of the election.
+</p>
+
+<p className="font-semibold text-center text-indigo-700 mt-10">
+  With full awareness of my civic responsibility and commitment to democratic
+  values, I voluntarily make this pledge in good faith.
+</p>
+
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="mt-16 px-6">
+          <Outlet />
         </div>
-      </div>
-    </div>
-  </>
-) : (
-  <div className="mt-16 px-6">
-    <Outlet />
-  </div>
-)}
+      )}
 
-
-      {/* 🔷 Profile Modal */}
+      {/* Profile Modal */}
       {showProfile && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">

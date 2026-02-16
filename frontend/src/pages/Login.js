@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API from "../api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const Login = () => {
 
     try {
       if (loginType === 'voter') {
-        const response = await axios.post('http://localhost:5000/api/voter/login', payload);
+        const response = await API.post('/api/voter/login', payload);
 
         if (response.data.success) {
           localStorage.setItem('userType', 'voter');
@@ -37,7 +38,7 @@ const Login = () => {
         }
       } 
       else if (loginType === 'admin') {
-        const response = await axios.post('http://localhost:5000/api/admin/login', payload);
+        const response = await API.post('/api/admin/login', payload);
 
         if (response.data.success) {
           localStorage.setItem('userType', 'admin');

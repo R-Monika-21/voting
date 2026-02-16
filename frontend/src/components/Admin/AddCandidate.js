@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API from "../../api";
 
 function AddCandidate() {
   const navigate = useNavigate();
@@ -26,23 +27,9 @@ function AddCandidate() {
         setLoading(true);
         setMessage({ text: '', type: 'success' });
 
-        const response = await fetch('http://localhost:5000/api/admin/elections', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            // Add Authorization header if you implement login later
-            // 'Authorization': `Bearer ${token}`,
-          },
-        });
+        const response = await API.get('/api/admin/elections');
+setElections(response.data || []);
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch elections: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Fetched elections:', data); // Debug - check browser console
-
-        setElections(data || []);
       } catch (err) {
         console.error('Error fetching elections:', err);
         setMessage({
@@ -112,18 +99,13 @@ function AddCandidate() {
     data.append('symbol', formData.symbol);
 
     try {
-      const res = await fetch('http://localhost:5000/api/candidates', {
-        method: 'POST',
-        body: data,
-      });
+      const res = await API.post('/api/candidates', data);
 
-      const result = await res.json();
+setMessage({
+  text: res.data.message || 'Candidate added successfully!',
+  type: 'success',
+});
 
-      if (!res.ok) {
-        throw new Error(result.error || 'Failed to add candidate');
-      }
-
-      setMessage({ text: result.message || 'Candidate added successfully!', type: 'success' });
       resetForm();
     } catch (err) {
       console.error('Error adding candidate:', err);

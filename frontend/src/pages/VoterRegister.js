@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API from "../api";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ const Register = () => {
 
     try {
       // Check if email already exists
-      const checkRes = await axios.post('http://localhost:5000/api/voter/check-email', { email });
+      const checkRes = await API.post('/api/voter/check-email', { email });
 
       if (checkRes.data.exists) {
         setError("Email already registered");
@@ -77,7 +78,7 @@ const Register = () => {
     };
 
     try {
-      const response = await axios.post('http://localhost:5000/api/voter/register', voterData);
+      const response = await API.post('/api/voter/register', voterData);
 
       if (response.data.success) {
         // You can store token/user info here if your login returns one

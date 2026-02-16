@@ -106,7 +106,10 @@ def add_candidate():
             return jsonify({'error': 'File too large. Max 2MB allowed'}), 400
 
         filename = secure_filename(file.filename)
-        save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+        symbols_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'symbols')
+        os.makedirs(symbols_folder, exist_ok=True)
+
+        save_path = os.path.join(symbols_folder, filename)
         file.save(save_path)
 
         # Store relative path (adjust prefix as needed)

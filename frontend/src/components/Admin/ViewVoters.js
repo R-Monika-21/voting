@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-
+import API from '../../api';
 const ViewVoter = () => {
   const [voters, setVoters] = useState([]);
   const [selectedVoter, setSelectedVoter] = useState(null);
@@ -24,7 +24,7 @@ const ViewVoter = () => {
       const params = new URLSearchParams(
         Object.fromEntries(Object.entries(filters).filter(([_, v]) => v !== ''))
       );
-      const response = await axios.get('http://localhost:5000/api/voter/voters', { params });
+      const response = await API.get('/api/voter/voters', { params });
       setVoters(response.data);
     } catch (error) {
       console.error('Error fetching voters:', error);

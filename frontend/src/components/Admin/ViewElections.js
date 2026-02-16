@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API from '../../api';
 
 const ViewElections = () => {
   const [elections, setElections] = useState([]);
@@ -31,9 +32,9 @@ const ViewElections = () => {
   const fetchElections = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/elections');
-      if (!res.ok) throw new Error('Failed to fetch elections');
-      let data = await res.json();
+      const res = await API.get('/api/admin/elections');
+let data = res.data;
+
 
       const now = new Date();
       data = data.map((election) => {
@@ -68,11 +69,10 @@ const ViewElections = () => {
 
   const updateElectionStatus = async (id, status) => {
     try {
-      await fetch(`/api/admin/elections/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ election_status: status }),
-      });
+      await API.put(`/api/admin/elections/${id}`, {
+  election_status: status,
+});
+
     } catch (err) {
       console.error('Failed to update status:', err);
     }
@@ -81,9 +81,9 @@ const ViewElections = () => {
   const fetchCandidates = async (electionId) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/candidates?election_id=${electionId}`);
-      if (!res.ok) throw new Error('Failed to fetch candidates');
-      const data = await res.json();
+      const res = await API.get(`/api/candidates?election_id=${electionId}`);
+const data = res.data;
+
       setCandidates(data);
     } catch (err) {
       console.error(err);
@@ -118,15 +118,8 @@ const ViewElections = () => {
   const saveElection = async () => {
     if (!currentElection) return;
     try {
-      const res = await fetch(`/api/admin/elections/${currentElection.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentElection),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Update failed');
-      }
+      await API.put(`/api/admin/elections/${currentElection.id}`, currentElection);
+
       setShowElectionModal(false);
       fetchElections();
     } catch (err) {
@@ -147,15 +140,8 @@ const ViewElections = () => {
   const saveCandidate = async () => {
     if (!currentCandidate) return;
     try {
-      const res = await fetch(`/api/candidates/${currentCandidate.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentCandidate),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Update failed');
-      }
+      await API.put(`/api/candidates/${currentCandidate.id}`, currentCandidate);
+
       setShowCandidateModal(false);
       fetchCandidates(selectedElectionId);
     } catch (err) {
@@ -173,8 +159,8 @@ const ViewElections = () => {
     const { type, id } = confirmAction;
     try {
       const url = type === 'election' ? `/api/admin/elections/${id}` : `/api/candidates/${id}`;
-      const res = await fetch(url, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Delete failed');
+      await API.delete(url);
+
       if (type === 'election') {
         fetchElections();
       } else {

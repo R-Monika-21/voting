@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import API from '../../api';
 
 const VoterViewCandidates = () => {
   const navigate = useNavigate();
@@ -14,16 +15,11 @@ const VoterViewCandidates = () => {
     const fetchElectionsWithCandidates = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token') || '';
 
-        const response = await axios.get(
-          'http://localhost:5000/api/voter/elections-with-candidates',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await API.get(
+  '/api/voter/elections-with-candidates'
+);
+
 
         const data = Array.isArray(response.data) ? response.data : [];
         setElections(data);
@@ -125,7 +121,7 @@ const VoterViewCandidates = () => {
                           <div className="h-48 bg-gray-200 flex items-center justify-center relative">
                             {candidate.symbol_url ? (
                               <img
-                                src={`http://localhost:5000${candidate.symbol_url}`}
+                                src={`${API.defaults.baseURL}${candidate.symbol_url}`}
                                 alt={`${candidate.name} symbol`}
                                 className="max-h-full max-w-full object-contain p-4"
                                 onError={(e) => {

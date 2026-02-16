@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
+import API from '../../api';
 const CreateElection = () => {
   const navigate = useNavigate();
 
@@ -32,7 +32,7 @@ const CreateElection = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('/api/admin/elections', formData);
+      const res = await API.post('/api/admin/elections', formData);
 
       if (res.status === 201 || res.data?.success) {
         setMessage('Election created successfully!');

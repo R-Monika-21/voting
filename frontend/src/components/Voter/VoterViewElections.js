@@ -1,6 +1,7 @@
 // src/components/VoterViewElections.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API from '../../api';
 
 const VoterViewElections = () => {
   const navigate = useNavigate();
@@ -29,8 +30,9 @@ const VoterViewElections = () => {
 
   const fetchElections = async () => {
     try {
-      const res = await fetch('/api/admin/elections');
-      const data = await res.json();
+      const res = await API.get('/api/admin/elections');
+const data = res.data;
+
 
       const valid = data.filter(el => {
         const now = new Date();
@@ -86,12 +88,13 @@ const VoterViewElections = () => {
     }
 
     try {
-      const res = await fetch(
-        `/api/elections/${election.id}/candidates-and-vote-status`,
-        { credentials: 'include' }
-      );
+     const res = await API.get(
+  `/api/elections/${election.id}/candidates-and-vote-status`
+);
 
-      const data = await res.json();
+const data = res.data;
+console.log("API Response:", data); 
+
       setCandidates(data.candidates || []);
       setHasVoted(!!data.has_voted);
 
@@ -194,18 +197,104 @@ const VoterViewElections = () => {
 
         {/* Selected Election */}
         {selectedElection && (
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-            <h3 className="text-3xl font-bold text-center mb-6">
-              {selectedElection.election_name}
-            </h3>
+  <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+    <h3 className="text-3xl font-bold text-center mb-6">
+      {selectedElection.election_name}
+    </h3>
 
-            {message && (
-              <div className="mb-6 p-4 bg-blue-50 text-blue-800 rounded-lg text-center">
-                {message}
-              </div>
-            )}
-          </div>
+    {message && (
+      <div className="mb-6 p-4 bg-blue-50 text-blue-800 rounded-lg text-center">
+        {message}
+      </div>
+    )}
+
+    {loading ? (
+  <p className="text-center text-gray-500">Loading candidates...</p>
+) : isUpcoming(selectedElection) ? null : candidates.length === 0 ? (
+  <p className="text-center text-gray-500">
+    No candidates available for this election.
+  </p>
+) : (
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        {candidates.map((candidate) => (
+  <label
+    key={candidate.id}
+    className={`block border rounded-xl p-6 transition cursor-pointer ${
+      selectedCandidateId === candidate.id
+        ? "border-indigo-600 bg-indigo-50"
+        : "border-gray-200 hover:shadow-md"
+    } ${hasVoted ? "opacity-60 cursor-not-allowed" : ""}`}
+  >
+    <div className="flex items-start gap-4">
+      
+      {/* Radio Button */}
+      <input
+        type="radio"
+        name="candidate"
+        value={candidate.id}
+        checked={selectedCandidateId === candidate.id}
+        onChange={() => setSelectedCandidateId(candidate.id)}
+        disabled={hasVoted}
+        className="mt-2 w-5 h-5 accent-indigo-600"
+      />
+
+      <div className="flex-1">
+        <h4 className="text-lg font-semibold text-indigo-700">
+          {candidate.name}
+        </h4>
+
+        <div className="text-sm text-gray-600 mt-3 space-y-1">
+          <p><strong>Roll No:</strong> {candidate.roll_no}</p>
+          <p><strong>Course:</strong> {candidate.course}</p>
+          <p><strong>Major:</strong> {candidate.major}</p>
+          <p><strong>Year:</strong> {candidate.year}</p>
+          <p><strong>Email:</strong> {candidate.email}</p>
+        </div>
+
+        {candidate.symbol_url && (
+          <img
+            src={`${API.defaults.baseURL}${candidate.symbol_url}`}
+            alt="symbol"
+            className="h-16 mt-3"
+          />
         )}
+      </div>
+    </div>
+  </label>
+))}
+
+      </div>
+    )}
+
+    {/* Vote Button */}
+    {!hasVoted && selectedCandidateId && (
+      <div className="text-center mt-8">
+        <button
+          onClick={async () => {
+            try {
+              await API.post(
+                `/api/elections/${selectedElection.id}/vote`,
+                { candidate_id: selectedCandidateId }
+              );
+              setMessage("Vote submitted successfully ✅");
+              setHasVoted(true);
+            } catch (err) {
+              setMessage(
+                err.response?.data?.message ||
+                  "Failed to submit vote."
+              );
+            }
+          }}
+          className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        >
+          Submit Vote
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
       </div>
     </div>
   );
