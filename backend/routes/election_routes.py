@@ -130,3 +130,5 @@ def delete_election(id):
         db.session.rollback()
         current_app.logger.error(f"Error deleting election: {str(e)}", exc_info=True)
         return jsonify({'error': 'Failed to delete election'}), 500
+
+

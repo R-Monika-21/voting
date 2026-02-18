@@ -2,24 +2,21 @@ import axios from "axios";
 
 const API = axios.create({
   baseURL: "http://127.0.0.1:5000", 
-  // OR use your IP:
-  // baseURL: "http://10.130.21.6:5000"
 });
 
-// 🔥 Automatically attach token to every request
+// 🔥 Automatically attach token only for voters
 API.interceptors.request.use(
   (config) => {
+    const userType = localStorage.getItem("userType"); // 'voter' or 'admin'
     const token = localStorage.getItem("token");
 
-    if (token) {
+    if (userType === "voter" && token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 export default API;

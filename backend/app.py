@@ -25,6 +25,8 @@ from routes.admin_routes import admin_bp
 from routes.election_routes import election_bp
 from routes.candidate_routes import candidate_bp
 from routes.vote_routes import vote_bp
+from routes.results_routes import results_bp # ← new results blueprint
+
 
 app = Flask(__name__)
 
@@ -95,6 +97,8 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(election_bp)
 app.register_blueprint(candidate_bp)
 app.register_blueprint(vote_bp)
+app.register_blueprint(results_bp)
+
 
 @app.route('/')
 def index():
