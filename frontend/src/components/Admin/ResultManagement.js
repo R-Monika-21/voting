@@ -1,304 +1,258 @@
-// src/components/Admin/ResultManagement.js
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Bar } from 'react-chartjs-2';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
+  ArcElement,
   Tooltip,
   Legend,
-} from 'chart.js';
-import API from '../../api';
-import { jsPDF } from 'jspdf';
+  Title,
+} from "chart.js";
+import API from "../../api";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 const ResultManagement = () => {
   const navigate = useNavigate();
 
   const [elections, setElections] = useState([]);
   const [selectedElection, setSelectedElection] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const userType = localStorage.getItem('userType'); // 'voter' or 'admin'
+  const [results, setResults] = useState([]);
+  const [summary, setSummary] = useState({});
+  const [winner, setWinner] = useState(null);
 
   useEffect(() => {
-    fetchClosedElections();
+    API.get("/api/elections/results/closed")
+      .then((res) => setElections(res.data))
+      .catch((err) => console.error(err));
   }, []);
 
-  const fetchClosedElections = async () => {
+  const fetchResults = async (electionId) => {
     try {
-      setLoading(true);
-      const url =
-        userType === 'admin'
-          ? '/api/admin/elections/results/closed'
-          : '/api/elections/results/closed';
-      const res = await API.get(url);
-      setElections(res.data);
+      const res = await API.get(`/api/elections/${electionId}/results`);
+      setResults(res.data.candidates);
+      setSummary(res.data.summary);
+      setWinner(res.data.winner);
+      setSelectedElection(electionId);
     } catch (err) {
-      setError('Failed to load election results');
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleSelectElection = async (electionId) => {
-    try {
-      setLoading(true);
-      const url =
-        userType === 'admin'
-          ? `/api/admin/elections/${electionId}/results`
-          : `/api/elections/${electionId}/results`;
-      const res = await API.get(url);
-      setSelectedElection(res.data);
-    } catch (err) {
-      setError('Failed to load election details');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const goBack = () => setSelectedElection(null);
-  const exportPDF = () => {
-  if (!selectedElection) return;
-
-  const doc = new jsPDF();
-
-  const { election, candidates, winner } = selectedElection;
-
-  let y = 10;
-  doc.setFontSize(16);
-  doc.text(`Election: ${election.title}`, 10, y);
-  y += 8;
-  doc.setFontSize(12);
-  doc.text(`End Date: ${new Date(election.end_date).toLocaleDateString()}`, 10, y);
-  y += 6;
-  const totalVotes = candidates.reduce((sum, c) => sum + c.vote_count, 0);
-  doc.text(`Total Votes: ${totalVotes}`, 10, y);
-  y += 8;
-
-  // Table Header
-  doc.setFont(undefined, 'bold');
-  doc.text('Candidate', 10, y);
-  doc.text('Course/Major', 70, y);
-  doc.text('Votes', 120, y);
-  doc.text('Percentage', 150, y);
-  doc.text('Winner', 180, y);
-  doc.setFont(undefined, 'normal');
-  y += 6;
-
-  candidates.forEach((c) => {
-    doc.text(c.name, 10, y);
-    doc.text(c.course || c.major || '—', 70, y);
-    doc.text(`${c.vote_count}`, 120, y);
-    doc.text(`${c.percentage?.toFixed(2)}%`, 150, y);
-    const status = c.is_winner && !winner?.tie ? '🏆' : '';
-    doc.text(status, 180, y);
-    y += 6;
-  });
-
-  y += 4;
-  if (winner?.tie) {
-    doc.text(`Result: Tie between ${winner.names.join(', ')}`, 10, y);
-  } else if (winner) {
-    doc.text(
-      `Winner: ${winner.name} 🏆 with ${winner.vote_count} votes (${winner.percentage?.toFixed(2)}%)`,
-      10,
-      y
-    );
-  } else {
-    doc.text('No votes cast.', 10, y);
-  }
-
-  doc.save(`${election.title}-summary.pdf`);
-};
-
-  if (loading && !selectedElection) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div className="text-center text-red-600 p-6">{error}</div>;
-  }
-
-  // ────────────────────────────────────────────────
-  // LIST OF CLOSED ELECTIONS
-  // ────────────────────────────────────────────────
-  if (!selectedElection) {
-    return (
-      <div className="max-w-6xl mx-auto p-6">
-        <button
-          onClick={() =>
-            navigate(userType === 'admin' ? '/admin-dashboard' : '/voter-dashboard')
-          }
-          className="mb-6 text-blue-600 hover:text-blue-800 font-medium flex items-center"
-        >
-          ← Back to Dashboard
-        </button>
-
-        <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-          Election Results
-        </h1>
-        
-
-        {elections.length === 0 ? (
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded">
-            <p className="text-yellow-700">No completed elections available yet.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {elections.map((election) => (
-              <div
-                key={election.id}
-                onClick={() => handleSelectElection(election.id)}
-                className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer border border-gray-200"
-              >
-                <div className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-2 line-clamp-2">
-                    {election.title}
-                  </h2>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p>Ended: {new Date(election.end_date).toLocaleDateString()}</p>
-                    <p className="font-medium text-green-600">
-                      Total votes: {election.total_votes || '—'}
-                    </p>
-                  </div>
-                </div>
-                <div className="bg-gray-50 px-6 py-4 text-right">
-                  <button className="text-blue-600 font-medium hover:text-blue-800">
-                    View Results →
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ────────────────────────────────────────────────
-  // DETAILED RESULTS VIEW
-  // ────────────────────────────────────────────────
-  const { election, candidates, winner } = selectedElection;
-  const totalVotes = candidates.reduce((sum, c) => sum + c.vote_count, 0);
-
-  const chartData = {
-    labels: candidates.map((c) => c.name),
+  const pieData = {
+    labels: results.map((c) => c.name),
     datasets: [
       {
-        label: 'Votes',
-        data: candidates.map((c) => c.vote_count),
+        data: results.map((c) => c.vote_count),
         backgroundColor: [
-          'rgba(54, 162, 235, 0.7)',
-          'rgba(255, 99, 132, 0.7)',
-          'rgba(75, 192, 192, 0.7)',
-          'rgba(255, 206, 86, 0.7)',
-          'rgba(153, 102, 255, 0.7)',
-          'rgba(255, 159, 64, 0.7)',
+          "#6366f1",
+          "#10b981",
+          "#f59e0b",
+          "#ef4444",
+          "#3b82f6",
         ],
-        borderColor: [
-          'rgb(54, 162, 235)',
-          'rgb(255, 99, 132)',
-          'rgb(75, 192, 192)',
-          'rgb(255, 206, 86)',
-          'rgb(153, 102, 255)',
-          'rgb(255, 159, 64)',
-        ],
-        borderWidth: 1,
       },
     ],
   };
 
-  const chartOptions = {
-    responsive: true,
+  const pieOptions = {
     plugins: {
-      legend: { display: false },
-      title: { display: true, text: 'Vote Distribution', font: { size: 18 } },
+      title: {
+        display: true,
+        text: "Vote Distribution",
+      },
+      legend: {
+        position: "bottom",
+      },
     },
-    scales: {
-      y: { beginAtZero: true, title: { display: true, text: 'Number of Votes' } },
-    },
+    responsive: true,
+    maintainAspectRatio: false,
+  };
+
+  const downloadPDF = () => {
+    window.open(
+      `/api/elections/${selectedElection}/results/export/pdf`,
+      "_blank"
+    );
+  };
+
+  const exportCSV = () => {
+    window.open(
+      `/api/elections/${selectedElection}/results/export/csv`,
+      "_blank"
+    );
+  };
+
+  const printPage = () => {
+    window.print();
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <button
-        onClick={goBack}
-        className="mb-6 text-blue-600 hover:text-blue-800 font-medium flex items-center"
-      >
-        ← Back to all results
-      </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 py-10 px-6">
+      <div className="max-w-7xl mx-auto">
 
-      {/* ✅ Export / Summary Buttons */}
-      
+        {!selectedElection && (
+          <>
+            <button
+              onClick={() => navigate(-1)}
+              className="mb-6 px-6 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-lg shadow"
+            >
+              ← Back
+            </button>
 
-      {/* Election Summary */}
-      <div className="bg-white shadow-lg rounded-xl p-8 mb-8 border border-gray-200">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">{election.title}</h1>
-        {/* ... rest of summary and chart / table as before ... */}
-        
-      </div>
+            <h2 className="text-4xl font-bold text-center mb-10 text-gray-800">
+              📊 Closed Elections
+            </h2>
 
-      {/* Vote Distribution Chart */}
-      <div className="bg-white shadow-lg rounded-xl p-8 mb-10">
-        <h2 className="text-2xl font-semibold mb-6 text-center">Vote Distribution</h2>
-        <div className="h-96">
-          <Bar data={chartData} options={chartOptions} />
-        </div>
-      </div>
-
-      {/* Candidate Table */}
-      <div className="bg-white shadow-lg rounded-xl overflow-hidden">
-        <h2 className="text-2xl font-semibold p-6 bg-gray-50 border-b">Candidate Results</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Symbol</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Candidate</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Course / Major</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">Votes</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">Percentage</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {candidates.map((candidate) => (
-                <tr key={candidate.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-5">
-                    {candidate.symbol_url ? (
-                      <img src={candidate.symbol_url} alt="symbol" className="h-12 w-12 object-contain rounded" />
-                    ) : (
-                      <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center text-gray-500">—</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-5 font-medium text-gray-900">{candidate.name}</td>
-                  <td className="px-6 py-5 text-gray-600">{candidate.course || candidate.major || '—'}</td>
-                  <td className="px-6 py-5 text-right font-medium">{candidate.vote_count}</td>
-                  <td className="px-6 py-5 text-right font-medium">{candidate.percentage?.toFixed(1)}%</td>
-                  <td className="px-6 py-5 text-center">
-                    {candidate.is_winner && !winner?.tie && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">Winner 🏆</span>
-                    )}
-                  </td>
-                </tr>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {elections.map((e) => (
+                <div
+                  key={e.id}
+                  onClick={() => fetchResults(e.id)}
+                  className="cursor-pointer bg-white rounded-2xl shadow-lg hover:shadow-2xl transition p-6 border border-gray-100"
+                >
+                  <h3 className="text-xl font-semibold mb-3 text-indigo-600">
+                    {e.title}
+                  </h3>
+                  <p className="text-gray-500">Click to View Results →</p>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </>
+        )}
+
+        {selectedElection && (
+          <>
+            <button
+              onClick={() => {
+                setSelectedElection(null);
+                setResults([]);
+                setSummary({});
+              }}
+              className="mb-6 px-6 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-lg shadow"
+            >
+              ← Back to Elections
+            </button>
+
+            <h2 className="text-4xl font-bold text-center mb-10 text-gray-800">
+              🏆 Election Results
+            </h2>
+
+            {/* Winner Card */}
+            {winner && !winner.tie && (
+              <div className="bg-white rounded-2xl shadow-lg p-8 text-center mb-10 border border-yellow-300">
+                {winner.symbol_url && (
+                  <img
+                    src={winner.symbol_url}
+                    alt="Winner Symbol"
+                    className="w-24 h-24 mx-auto mb-4 object-contain"
+                  />
+                )}
+                <h3 className="text-3xl font-bold text-indigo-600">
+                  👑 {winner.name}
+                </h3>
+                <p className="text-gray-600 mt-2 text-lg">
+                  Won by {winner.margin} votes
+                </p>
+              </div>
+            )}
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+              <div className="bg-white p-6 rounded-xl shadow text-center">
+                <h4 className="text-gray-500">Total Voters</h4>
+                <p className="text-3xl font-bold text-indigo-600">
+                  {summary.total_registered_voters || 0}
+                </p>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl shadow text-center">
+                <h4 className="text-gray-500">Total Votes</h4>
+                <p className="text-3xl font-bold text-indigo-600">
+                  {summary.total_votes || 0}
+                </p>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl shadow text-center">
+                <h4 className="text-gray-500">Turnout</h4>
+                <p className="text-3xl font-bold text-indigo-600">
+                  {summary.turnout_percentage || 0}%
+                </p>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-12">
+              <table className="min-w-full text-sm">
+                <thead className="bg-indigo-600 text-white">
+                  <tr>
+                    <th className="px-6 py-4 text-left">Symbol</th>
+                    <th className="px-6 py-4 text-left">Name</th>
+                    <th className="px-6 py-4 text-left">Course</th>
+                    <th className="px-6 py-4 text-left">Votes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.map((c) => (
+                    <tr
+                      key={c.id}
+                      className={`border-t hover:bg-gray-50 ${
+                        c.is_winner ? "bg-yellow-100 font-semibold" : ""
+                      }`}
+                    >
+                      <td className="px-6 py-4">
+                        {c.symbol_url && (
+                          <img
+                            src={c.symbol_url}
+                            alt="symbol"
+                            className="w-10 h-10 object-contain"
+                          />
+                        )}
+                      </td>
+                      <td className="px-6 py-4">{c.name}</td>
+                      <td className="px-6 py-4">{c.course}</td>
+                      <td className="px-6 py-4 text-indigo-600 font-bold">
+                        {c.vote_count}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Smaller Pie Chart */}
+            <div className="bg-white p-6 rounded-2xl shadow-lg mb-12 flex justify-center">
+              <div style={{ width: "400px", height: "400px" }}>
+                <Pie data={pieData} options={pieOptions} />
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex flex-wrap justify-center gap-6">
+              <button
+                onClick={exportCSV}
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow"
+              >
+                Export CSV
+              </button>
+
+              <button
+                onClick={downloadPDF}
+                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow"
+              >
+                Download PDF
+              </button>
+
+              <button
+                onClick={printPage}
+                className="px-6 py-3 bg-gray-700 hover:bg-gray-800 text-white rounded-lg shadow"
+              >
+                Print
+              </button>
+            </div>
+          </>
+        )}
       </div>
-      
     </div>
   );
 };
