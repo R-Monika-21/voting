@@ -14,8 +14,11 @@ ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 const ResultManagement = () => {
   const navigate = useNavigate();
+  const [showWinnerDetails, setShowWinnerDetails] = useState(false);
 
   const [elections, setElections] = useState([]);
+  const [electionInfo, setElectionInfo] = useState(null);
+
   const [selectedElection, setSelectedElection] = useState(null);
   const [results, setResults] = useState([]);
   const [summary, setSummary] = useState({});
@@ -33,6 +36,8 @@ const ResultManagement = () => {
       setResults(res.data.candidates);
       setSummary(res.data.summary);
       setWinner(res.data.winner);
+      setElectionInfo(res.data.election);
+
       setSelectedElection(electionId);
     } catch (err) {
       console.error(err);
@@ -68,24 +73,32 @@ const ResultManagement = () => {
     responsive: true,
     maintainAspectRatio: false,
   };
+  
+ const BASE_URL = "http://localhost:5000"; // backend server
 
-  const downloadPDF = () => {
-    window.open(
-      `/api/elections/${selectedElection}/results/export/pdf`,
-      "_blank"
-    );
-  };
+const downloadPDF = () => {
+  window.open(
+    `${BASE_URL}/api/elections/${selectedElection}/results/export/pdf`,
+    "_blank"
+  );
+};
 
-  const exportCSV = () => {
-    window.open(
-      `/api/elections/${selectedElection}/results/export/csv`,
-      "_blank"
-    );
-  };
+const downloadWinnerPDF = () => {
+  if (!selectedElection || !winnerDetails) return;
+
+  window.open(
+    `${BASE_URL}/api/elections/${selectedElection}/results/winner/${winnerDetails.id}/export/pdf`,
+    "_blank"
+  );
+};
+
 
   const printPage = () => {
     window.print();
   };
+
+  const winnerDetails =
+  results.find((c) => c.name === winner?.name) || null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 py-10 px-6">
@@ -134,28 +147,53 @@ const ResultManagement = () => {
               ← Back to Elections
             </button>
 
-            <h2 className="text-4xl font-bold text-center mb-10 text-gray-800">
-              🏆 Election Results
-            </h2>
+            <h2 className="text-4xl font-bold text-center mb-4 text-gray-800">
+  🏆 {electionInfo?.title}
+</h2>
+
+<div className="bg-white rounded-xl shadow p-6 mb-10">
+  <h3 className="text-xl font-semibold mb-4 text-indigo-600">
+    📌 Election Details
+  </h3>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <p><strong>Election Name:</strong> {electionInfo?.title}</p>
+    <p><strong>Election ID:</strong> {electionInfo?.id}</p>
+    <p><strong>End Date:</strong> {electionInfo?.end_date}</p>
+    <p><strong>Status:</strong> CLOSED</p>
+  </div>
+</div>
+
 
             {/* Winner Card */}
             {winner && !winner.tie && (
-              <div className="bg-white rounded-2xl shadow-lg p-8 text-center mb-10 border border-yellow-300">
-                {winner.symbol_url && (
-                  <img
-                    src={winner.symbol_url}
-                    alt="Winner Symbol"
-                    className="w-24 h-24 mx-auto mb-4 object-contain"
-                  />
-                )}
-                <h3 className="text-3xl font-bold text-indigo-600">
-                  👑 {winner.name}
-                </h3>
-                <p className="text-gray-600 mt-2 text-lg">
-                  Won by {winner.margin} votes
-                </p>
-              </div>
-            )}
+  <div
+    onClick={() => setShowWinnerDetails(true)}
+    className="bg-white rounded-2xl shadow-lg p-8 text-center mb-10 border border-yellow-300 cursor-pointer hover:shadow-2xl transition"
+  >
+    {winner.symbol_url && (
+      <img
+        src={winner.symbol_url}
+        alt="Winner Symbol"
+        className="w-24 h-24 mx-auto mb-4 object-contain"
+      />
+    )}
+      {/* Winner Badge */}
+  <div className="inline-block bg-yellow-400 text-white px-3 py-1 rounded-full font-bold mb-2">
+    🏆 WINNER
+  </div>
+    <h3 className="text-3xl font-bold text-indigo-600">
+      👑 {winner.name}
+    </h3>
+    <p className="text-gray-600 mt-2 text-lg">
+      Won by {winner.margin} votes
+    </p>
+    <p className="text-sm text-gray-400 mt-2">
+      Click to view full details
+    </p>
+  </div>
+)}
+
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
@@ -188,8 +226,13 @@ const ResultManagement = () => {
                   <tr>
                     <th className="px-6 py-4 text-left">Symbol</th>
                     <th className="px-6 py-4 text-left">Name</th>
+                    <th className="px-6 py-4 text-left">Email</th>
+                    <th className="px-6 py-4 text-left">Roll NO</th>
+
                     <th className="px-6 py-4 text-left">Course</th>
                     <th className="px-6 py-4 text-left">Votes</th>
+                    <th className="px-6 py-4 text-left">Percentage</th>
+
                   </tr>
                 </thead>
                 <tbody>
@@ -210,10 +253,21 @@ const ResultManagement = () => {
                         )}
                       </td>
                       <td className="px-6 py-4">{c.name}</td>
+                      <td className="px-6 py-4">
+  {c.email}
+</td>
+                      <td className="px-6 py-4">
+  {c.roll_no}
+</td>
                       <td className="px-6 py-4">{c.course}</td>
+
                       <td className="px-6 py-4 text-indigo-600 font-bold">
                         {c.vote_count}
                       </td>
+                      <td className="px-6 py-4">
+  {c.percentage}%
+</td>
+
                     </tr>
                   ))}
                 </tbody>
@@ -229,12 +283,6 @@ const ResultManagement = () => {
 
             {/* Buttons */}
             <div className="flex flex-wrap justify-center gap-6">
-              <button
-                onClick={exportCSV}
-                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow"
-              >
-                Export CSV
-              </button>
 
               <button
                 onClick={downloadPDF}
@@ -250,6 +298,60 @@ const ResultManagement = () => {
                 Print
               </button>
             </div>
+            {showWinnerDetails && winnerDetails && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative">
+
+      <button
+        onClick={() => setShowWinnerDetails(false)}
+        className="absolute top-3 right-4 text-gray-500 hover:text-black text-xl"
+      >
+        ✕
+      </button>
+
+      <div className="text-center">
+        {winnerDetails.symbol_url && (
+          <img
+            src={winnerDetails.symbol_url}
+            alt="Winner"
+            className="w-24 h-24 mx-auto mb-4 object-contain"
+          />
+        )}
+
+        <h3 className="text-2xl font-bold text-indigo-600 mb-4">
+          {winnerDetails.name}
+        </h3>
+
+        <div className="text-left space-y-2 text-gray-700">
+          <p><strong>Email:</strong> {winnerDetails.email}</p>
+          <p><strong>Roll No:</strong> {winnerDetails.roll_no}</p>
+          <p><strong>Major:</strong> {winnerDetails.major}</p>
+          <p><strong>Course:</strong> {winnerDetails.course}</p>
+          <p><strong>Votes:</strong> {winnerDetails.vote_count}</p>
+          <p><strong>Percentage:</strong> {winnerDetails.percentage}%</p>
+        </div>
+        <div className="mt-6 flex justify-center gap-4">
+  <button
+    onClick={downloadWinnerPDF}
+    className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow"
+  >
+    Download Winner Details
+  </button>
+
+  <button
+    onClick={() => setShowWinnerDetails(false)}
+    className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg shadow"
+  >
+    Close
+  </button>
+</div>
+
+      </div>
+    </div>
+  </div>
+)}
+
+
           </>
         )}
       </div>

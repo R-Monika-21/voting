@@ -3,6 +3,9 @@ import axios from 'axios';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import API from '../../api';
 const ViewVoter = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+const votersPerPage = 3;
+
   const [voters, setVoters] = useState([]);
   const [selectedVoter, setSelectedVoter] = useState(null);
   const [filters, setFilters] = useState({
@@ -14,10 +17,12 @@ const ViewVoter = () => {
   });
 
   useEffect(() => {
-    if (!selectedVoter) {
-      fetchVoters();
-    }
-  }, [filters, selectedVoter]);
+  if (!selectedVoter) {
+    fetchVoters();
+    setCurrentPage(1); // Reset to first page when filters change
+  }
+}, [filters, selectedVoter]);
+
 
   const fetchVoters = async () => {
     try {
@@ -30,6 +35,13 @@ const ViewVoter = () => {
       console.error('Error fetching voters:', error);
     }
   };
+  // Pagination Logic
+const indexOfLastVoter = currentPage * votersPerPage;
+const indexOfFirstVoter = indexOfLastVoter - votersPerPage;
+const currentVoters = voters.slice(indexOfFirstVoter, indexOfLastVoter);
+
+const totalPages = Math.ceil(voters.length / votersPerPage);
+
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -163,7 +175,7 @@ const ViewVoter = () => {
                   No voters found matching the filters.
                 </p>
               ) : (
-                voters.map((voter) => (
+                currentVoters.map((voter) => (
                   <div
                     key={voter.id}
                     onClick={() => handleSelectVoter(voter)}
@@ -191,6 +203,39 @@ const ViewVoter = () => {
                 ))
               )}
             </div>
+            {/* Pagination Controls */}
+{voters.length > votersPerPage && (
+  <div className="flex justify-center items-center gap-4 mt-8">
+    <button
+      onClick={() => setCurrentPage((prev) => prev - 1)}
+      disabled={currentPage === 1}
+      className={`px-4 py-2 rounded-lg font-medium transition ${
+        currentPage === 1
+          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          : 'bg-blue-600 text-white hover:bg-blue-700'
+      }`}
+    >
+      Previous
+    </button>
+
+    <span className="text-gray-700 font-medium">
+      Page {currentPage} of {totalPages}
+    </span>
+
+    <button
+      onClick={() => setCurrentPage((prev) => prev + 1)}
+      disabled={currentPage === totalPages}
+      className={`px-4 py-2 rounded-lg font-medium transition ${
+        currentPage === totalPages
+          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          : 'bg-blue-600 text-white hover:bg-blue-700'
+      }`}
+    >
+      Next
+    </button>
+  </div>
+)}
+
           </>
         )}
 
