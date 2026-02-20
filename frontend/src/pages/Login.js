@@ -1,13 +1,12 @@
 // src/pages/Login.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import API from "../api";
 
 const Login = () => {
   const navigate = useNavigate();
 
-  const [loginType, setLoginType] = useState('voter'); // 'voter' or 'admin'
+  const [loginType, setLoginType] = useState('voter');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,9 +29,8 @@ const Login = () => {
           localStorage.setItem('user', JSON.stringify({
             id: response.data.voter.id,
             email: response.data.voter.email,
-            name: response.data.voter.name || email.split('@')[0], // fallback
+            name: response.data.voter.name || email.split('@')[0],
           }));
-          // localStorage.setItem('token', response.data.token || ''); // if you add JWT later
 
           navigate('/voter-dashboard', { replace: true });
         }
@@ -59,95 +57,126 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 py-12 px-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <h2 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-white">
-          Login to Voting System
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-100 px-4">
 
-        <div className="flex justify-center gap-4 mb-8">
-          <button
-            type="button"
-            onClick={() => setLoginType('voter')}
-            className={`px-6 py-3 rounded-lg font-medium transition ${
-              loginType === 'voter'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300'
-            }`}
-          >
-            Voter Login
-          </button>
-          <button
-            type="button"
-            onClick={() => setLoginType('admin')}
-            className={`px-6 py-3 rounded-lg font-medium transition ${
-              loginType === 'admin'
-                ? 'bg-red-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300'
-            }`}
-          >
-            Admin Login
-          </button>
+      <div className="w-full max-w-md">
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-extrabold text-blue-700">
+            Smart Online Voting
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Secure • Transparent • Trusted
+          </p>
         </div>
 
-        {error && (
-          <div className="bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-6">
-            {error}
-          </div>
-        )}
+        {/* Login Card */}
+        <div className="bg-white/80 backdrop-blur-lg border border-gray-200 rounded-2xl shadow-2xl p-8 transition-all duration-300">
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value.trim().toLowerCase())}
-              required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="you@example.com"
-            />
-          </div>
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+            Login to Your Account
+          </h2>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-3 rounded-lg font-medium text-white transition ${
-              loginType === 'voter' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'
-            } disabled:opacity-50`}
-          >
-            {loading ? 'Logging in...' : `Login as ${loginType === 'voter' ? 'Voter' : 'Admin'}`}
-          </button>
-        </form>
-
-        {loginType === 'voter' && (
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-            Don't have an account?{' '}
+          {/* Toggle Buttons */}
+          <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
             <button
               type="button"
-              onClick={() => navigate('/register')}
-              className="text-blue-600 dark:text-blue-400 hover:underline"
+              onClick={() => setLoginType('voter')}
+              className={`w-1/2 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                loginType === 'voter'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-200'
+              }`}
             >
-              Register here
+              🗳️ Voter
             </button>
-          </p>
-        )}
+
+            <button
+              type="button"
+              onClick={() => setLoginType('admin')}
+              className={`w-1/2 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                loginType === 'admin'
+                  ? 'bg-green-600 text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              🛠 Admin
+            </button>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-5 text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value.trim().toLowerCase())}
+                required
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition outline-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-3 rounded-lg font-semibold text-white text-lg transition duration-300 shadow-md ${
+                loginType === 'voter'
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-green-600 hover:bg-green-700'
+              } disabled:opacity-50`}
+            >
+              {loading ? 'Logging in...' : `Login as ${loginType === 'voter' ? 'Voter' : 'Admin'}`}
+            </button>
+          </form>
+
+          {/* Register Link */}
+          {loginType === 'voter' && (
+            <p className="text-center text-sm text-gray-600 mt-6">
+              Don’t have an account?{' '}
+              <button
+                type="button"
+                onClick={() => navigate('/register')}
+                className="text-blue-600 font-medium hover:underline"
+              >
+                Register here
+              </button>
+            </p>
+          )}
+
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-gray-500 mt-6">
+          Every Vote Matters • Powered by Secure Authentication
+        </p>
+
       </div>
     </div>
   );
