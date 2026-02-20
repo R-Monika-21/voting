@@ -8,7 +8,7 @@ const LandingPage = () => {
       {/* Navbar */}
       <nav className="flex justify-between items-center px-10 py-5 bg-white shadow-md">
         <h1 className="text-2xl font-bold text-blue-700">
-          Smart Online Voting
+          MyVote - Smart Online Voting System
         </h1>
 
         <div className="space-x-4">

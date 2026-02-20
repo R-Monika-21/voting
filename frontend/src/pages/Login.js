@@ -64,7 +64,7 @@ const Login = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-blue-700">
-            Smart Online Voting
+            MyVote - Smart Online Voting System
           </h1>
           <p className="text-gray-600 mt-2">
             Secure • Transparent • Trusted

@@ -1,6 +1,6 @@
 {
-  "short_name": "Smart Online Voting",
-  "name": "Create Smart Online Voting App with React and Flask",
+  "short_name": "MyVote",
+  "name": "Create  App with React and Flask",
   "icons": [
     {
       "src": "favicon.ico",
