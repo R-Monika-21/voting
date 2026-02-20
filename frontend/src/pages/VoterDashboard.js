@@ -8,6 +8,12 @@ import {
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 
 import API from "../api";
+import {
+  HomeIcon,
+  ClipboardDocumentListIcon,
+  UsersIcon,
+  ChartBarIcon,
+} from "@heroicons/react/24/outline";
 
 const VoterDashboard = () => {
   const [voter, setVoter] = useState(null);
@@ -94,86 +100,95 @@ const VoterDashboard = () => {
       )}
 
       {/* Top Navbar */}
-      <div className="bg-indigo-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
-        <h1 className="text-xl font-bold">Voter Dashboard</h1>
+      {/* Top Navbar */}
+<div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-4 flex justify-between items-center shadow-lg">
 
-        <div className="flex items-center gap-8 font-medium">
-          <button
-            onClick={() => navigate("/voter-dashboard/view-elections")}
-            className="hover:text-gray-200"
-          >
-            View Elections
-          </button>
+  {/* Left: Dashboard Title with Icon */}
+  <div className="flex items-center gap-3">
+    <HomeIcon className="h-7 w-7 text-white" />
+    <h1 className="text-xl font-bold tracking-wide">
+      Voter Dashboard
+    </h1>
+  </div>
 
-          <button
-            onClick={() => navigate("/voter-dashboard/view-candidates")}
-            className="hover:text-gray-200"
-          >
-            View Candidates
-          </button>
+  <div className="flex items-center gap-8 font-medium">
 
-          <button
-            onClick={() => navigate("/voter-dashboard/view-results")}
-            className="hover:text-gray-200"
-          >
-            Results
-          </button>
+    <button
+      onClick={() => navigate("/voter-dashboard/view-elections")}
+      className="flex items-center gap-2 hover:text-gray-200 transition"
+    >
+      <ClipboardDocumentListIcon className="h-5 w-5" />
+      View Elections
+    </button>
 
-          {/* Profile Dropdown */}
-          <Menu as="div" className="relative inline-block text-left">
-            <Menu.Button className="flex items-center gap-2 hover:text-gray-200">
-              <UserCircleIcon className="h-8 w-8" />
-              <ChevronDownIcon className="h-4 w-4" />
-            </Menu.Button>
+    <button
+      onClick={() => navigate("/voter-dashboard/view-candidates")}
+      className="flex items-center gap-2 hover:text-gray-200 transition"
+    >
+      <UsersIcon className="h-5 w-5" />
+      View Candidates
+    </button>
 
-            <Transition
-              as={Fragment}
-              enter="transition ease-out duration-100"
-              enterFrom="transform opacity-0 scale-95"
-              enterTo="transform opacity-100 scale-100"
-              leave="transition ease-in duration-75"
-              leaveFrom="transform opacity-100 scale-100"
-              leaveTo="transform opacity-0 scale-95"
-            >
-              <Menu.Items className="absolute right-0 mt-2 w-64 bg-white text-black rounded-md shadow-lg p-4">
-                <div className="border-b pb-2 mb-2">
-                  <p className="font-semibold">{voter.student_name}</p>
-                  <p className="text-sm text-gray-600">{voter.email}</p>
-                </div>
+    <button
+      onClick={() => navigate("/voter-dashboard/view-results")}
+      className="flex items-center gap-2 hover:text-gray-200 transition"
+    >
+      <ChartBarIcon className="h-5 w-5" />
+      Results
+    </button>
 
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      onClick={() => {
-                        setShowProfile(true);
-                        setEditMode(false);
-                      }}
-                      className={`${
-                        active ? "bg-gray-100" : ""
-                      } w-full text-left px-2 py-2 rounded`}
-                    >
-                      View Profile
-                    </button>
-                  )}
-                </Menu.Item>
+    {/* Profile Dropdown */}
+    <Menu as="div" className="relative inline-block text-left">
+      <Menu.Button className="flex items-center gap-2 hover:text-gray-200 transition">
+        <UserCircleIcon className="h-8 w-8" />
+        <ChevronDownIcon className="h-4 w-4" />
+      </Menu.Button>
 
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      onClick={handleLogout}
-                      className={`${
-                        active ? "bg-gray-100" : ""
-                      } w-full text-left px-2 py-2 rounded text-red-600`}
-                    >
-                      Logout
-                    </button>
-                  )}
-                </Menu.Item>
-              </Menu.Items>
-            </Transition>
-          </Menu>
-        </div>
-      </div>
+      <Transition
+        as={Fragment}
+        enter="transition ease-out duration-100"
+        enterFrom="transform opacity-0 scale-95"
+        enterTo="transform opacity-100 scale-100"
+        leave="transition ease-in duration-75"
+        leaveFrom="transform opacity-100 scale-100"
+        leaveTo="transform opacity-0 scale-95"
+      >
+        <Menu.Items className="absolute right-0 mt-2 w-64 bg-white text-black rounded-xl shadow-xl p-4 border border-gray-100">
+          <div className="border-b pb-2 mb-2">
+            <p className="font-semibold">{voter.student_name}</p>
+            <p className="text-sm text-gray-600">{voter.email}</p>
+          </div>
+
+          <Menu.Item>
+            {({ active }) => (
+              <button
+                onClick={() => {
+                  setShowProfile(true);
+                  setEditMode(false);
+                }}
+                className={`${active ? "bg-gray-100" : ""} w-full text-left px-3 py-2 rounded-lg transition`}
+              >
+                View Profile
+              </button>
+            )}
+          </Menu.Item>
+
+          <Menu.Item>
+            {({ active }) => (
+              <button
+                onClick={handleLogout}
+                className={`${active ? "bg-gray-100" : ""} w-full text-left px-3 py-2 rounded-lg text-red-600 transition`}
+              >
+                Logout
+              </button>
+            )}
+          </Menu.Item>
+        </Menu.Items>
+      </Transition>
+    </Menu>
+
+  </div>
+</div>
 
       {/* Main Content */}
       {isDashboardHome ? (
@@ -255,6 +270,7 @@ const VoterDashboard = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">
             <h2 className="text-2xl font-bold mb-6 text-indigo-700 text-center">
+              <UserCircleIcon className="h-10 w-10 inline-block mr-2" />
               Voter Profile
             </h2>
 
