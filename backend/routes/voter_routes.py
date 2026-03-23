@@ -406,3 +406,6 @@ def submit_vote(election_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Failed to record vote", "detail": str(e)}), 500
+
+
+
