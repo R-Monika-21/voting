@@ -150,6 +150,24 @@ const downloadWinnerPDF = () => {
             <h2 className="text-4xl font-bold text-center mb-4 text-gray-800">
   🏆 {electionInfo?.title}
 </h2>
+{winner?.tie && (
+  <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg text-center mb-6">
+    <h3 className="text-xl font-bold mb-2">⚠️ Election Tie</h3>
+    <p>
+      Election is a tie between:
+      {results
+        .filter(c => c.vote_count === winner.vote_count)
+        .map(c => ` ${c.name} (Roll No: ${c.roll_no})`)
+        .join(", ")}
+    </p>
+  </div>
+)}
+{winner?.no_votes && (
+  <div className="bg-blue-100 border border-blue-400 text-gray-700 px-6 py-4 rounded-lg text-center mb-6">
+    <h3 className="text-xl font-bold mb-2">ℹ️ No Votes</h3>
+    <p>No one has voted in this election.</p>
+  </div>
+)}
 
 <div className="bg-white rounded-xl shadow p-6 mb-10">
   <h3 className="text-xl font-semibold mb-4 text-indigo-600">
@@ -166,7 +184,7 @@ const downloadWinnerPDF = () => {
 
 
             {/* Winner Card */}
-            {winner && !winner.tie && (
+            {winner && !winner.tie && !winner.no_votes && (
   <div
     onClick={() => setShowWinnerDetails(true)}
     className="bg-white rounded-2xl shadow-lg p-8 text-center mb-10 border border-yellow-300 cursor-pointer hover:shadow-2xl transition"
@@ -275,21 +293,24 @@ const downloadWinnerPDF = () => {
             </div>
 
             {/* Smaller Pie Chart */}
-            <div className="bg-white p-6 rounded-2xl shadow-lg mb-12 flex justify-center">
-              <div style={{ width: "400px", height: "400px" }}>
-                <Pie data={pieData} options={pieOptions} />
-              </div>
-            </div>
-
+            {summary.total_votes > 0 && (
+  <div className="bg-white p-6 rounded-2xl shadow-lg mb-12 flex justify-center">
+    <div style={{ width: "400px", height: "400px" }}>
+      <Pie data={pieData} options={pieOptions} />
+    </div>
+  </div>
+)}
             {/* Buttons */}
-            <div className="flex flex-wrap justify-center gap-6">
+            <div className="flex flex-wrap  justify-center gap-6">
 
-              <button
-                onClick={downloadPDF}
-                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow"
-              >
-                Download PDF
-              </button>
+              {summary.total_votes === 0 ? (
+  <div className="text-center text-blue-600">
+    <p className="text-lg font-semibold">📊 No Participation in this election</p>
+    <p>0% turnout recorded in this election</p>
+  </div>
+) : (
+  <button onClick={downloadPDF} className="px-6 py-3 bg-gray-700 hover:bg-gray-800 text-white rounded-lg shadow">Download PDF</button>
+)}
 
               <button
                 onClick={printPage}

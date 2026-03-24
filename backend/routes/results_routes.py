@@ -101,6 +101,7 @@ def get_election_results(election_id):
         candidates = [c for c in candidates if search in c.name.lower()]
 
     total_votes = sum(c.count for c in candidates) or 0
+    
     total_registered_voters = Voter.query.count()
 
     # Determine winner / tie
@@ -136,7 +137,8 @@ def get_election_results(election_id):
 
     if max_votes == 0:
         winner_data = {
-            "message": "No votes cast yet",
+            "message": "No one has voted in this election",
+            "no_votes": True,
             "tie": False
         }
 
@@ -212,14 +214,19 @@ def export_results_pdf(election_id):
     # DETERMINE WINNER
     # =========================
     winner = None
+    winners = []
     margin = 0
 
     if candidates and total_votes > 0:
         sorted_candidates = sorted(candidates, key=lambda x: x.count, reverse=True)
-        winner = sorted_candidates[0]
+        max_votes = sorted_candidates[0].count
 
-        if len(sorted_candidates) > 1:
-            margin = winner.count - sorted_candidates[1].count
+        winners = [c for c in sorted_candidates if c.count == max_votes]
+
+        if len(winners) == 1:
+            winner = winners[0]
+            if len(sorted_candidates) > 1:
+                margin = winner.count - sorted_candidates[1].count
 
     # =========================
     # HEADER
@@ -256,7 +263,26 @@ def export_results_pdf(election_id):
     elements.append(Paragraph("<b>WINNER OF THE ELECION: </b>", styles["Heading2"]))
     elements.append(Spacer(1, 0.3 * inch))
 
-    if winner:
+    if total_votes == 0:
+        elements.append(Paragraph("<b>NO VOTES RECORDED</b>", styles["Heading2"]))
+        elements.append(Spacer(1, 0.3 * inch))
+        elements.append(Paragraph(
+            "No one has voted in this election. Therefore, no winner can be declared.",
+            styles["Normal"]
+        ))
+
+    elif len(winners) > 1:
+        tie_text = "Election is TIE between:<br/><br/>"
+
+        for w in winners:
+            tie_text += f"- {w.name} (Roll No: {w.roll_no})<br/>"
+
+        elements.append(Paragraph("<b>TIE RESULT</b>", styles["Heading2"]))
+        elements.append(Spacer(1, 0.3 * inch))
+        elements.append(Paragraph(tie_text, styles["Normal"]))
+
+
+    elif winner:
         winner_data = [
             ["Name", winner.name],
             ["Email", winner.email],
