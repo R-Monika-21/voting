@@ -47,7 +47,8 @@ CORS(app, resources={
             "http://localhost:3000",
             "http://127.0.0.1:3000",
             "http://localhost:5173",   
-            "http://localhost:4200",   
+            "http://localhost:4200",
+            "https://your-frontend-url.vercel.app"   
         ],
         "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization", "Accept"],
@@ -100,5 +101,5 @@ if __name__ == '__main__':
     for rule in app.url_map.iter_rules():
         print(rule)
 
-
     app.run(debug=True, host='0.0.0.0', port=5000)
+    
