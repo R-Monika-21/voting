@@ -7,7 +7,6 @@ import VoterRegister from './pages/VoterRegister';
 import AdminDashboard from './pages/AdminDashboard';
 import VoterDashboard from './pages/VoterDashboard';
 import ProtectedRoute from './components/Common/ProtectedRoute';
-
 // Admin components
 import CreateElection from './components/Admin/CreateElection';
 import AddCandidate from './components/Admin/AddCandidate';
@@ -27,7 +26,6 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<VoterRegister />} />
-
         <Route
           path="/admin-dashboard"
           element={
