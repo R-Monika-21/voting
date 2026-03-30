@@ -90,7 +90,8 @@ def index():
     return {"message": "Online Voting System API is running"}
 
 if __name__ == '__main__':
-
+    with app.app_context():
+        db.create_all()
 
     print("\n===== REGISTERED ROUTES =====")
     for rule in app.url_map.iter_rules():
