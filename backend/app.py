@@ -76,6 +76,8 @@ def load_user(user_id):
 
 jwt = JWTManager(app)
 db.init_app(app)
+with app.app_context():
+    db.create_all()
 
 app.register_blueprint(voter_bp)
 app.register_blueprint(admin_bp)
@@ -90,8 +92,6 @@ def index():
     return {"message": "Online Voting System API is running"}
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
 
     print("\n===== REGISTERED ROUTES =====")
     for rule in app.url_map.iter_rules():
