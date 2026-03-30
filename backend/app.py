@@ -46,14 +46,11 @@ CORS(app, resources={
         "origins": [
             "http://localhost:3000",
             "http://127.0.0.1:3000",
-            "http://localhost:5173",   
-            "http://localhost:4200",
-            "https://your-frontend-url.vercel.app"   
+            "https://voting-orpin-seven.vercel.app"
         ],
         "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization", "Accept"],
-        "supports_credentials": True,
-        "max_age": 86400
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
     }
 })
 
