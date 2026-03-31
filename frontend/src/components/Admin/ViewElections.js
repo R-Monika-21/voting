@@ -323,7 +323,7 @@ const data = res.data;
   <div className="mt-4">
     
     <img
-      src={`${API.defaults.baseURL}${candidate.symbol_url}`}
+      src={`${API.defaults.baseURL.replace('/api', '')}${candidate.symbol_url}`}
       alt={`${candidate.name}'s election symbol`}
       className="w-28 h-28 object-contain rounded-lg border border-gray-300 bg-white"
       onError={(e) => {
