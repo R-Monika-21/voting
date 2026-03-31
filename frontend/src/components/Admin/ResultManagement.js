@@ -74,7 +74,15 @@ const ResultManagement = () => {
     maintainAspectRatio: false,
   };
   
- const BASE_URL = "http://localhost:5000"; // backend server
+  const getImageUrl = (url) => {
+  if (!url) return '';
+
+  if (url.startsWith('http')) return url;
+
+  return `${API.defaults.baseURL.replace('/api', '')}${url}`;
+};
+
+ const BASE_URL = API.defaults.baseURL.replace('/api', ''); // backend server
 
 const downloadPDF = () => {
   window.open(
@@ -190,8 +198,7 @@ const downloadWinnerPDF = () => {
     className="bg-white rounded-2xl shadow-lg p-8 text-center mb-10 border border-yellow-300 cursor-pointer hover:shadow-2xl transition"
   >
     {winner.symbol_url && (
-      <img
-        src={winner.symbol_url}
+      <img src={getImageUrl(winner.symbol_url)}
         alt="Winner Symbol"
         className="w-24 h-24 mx-auto mb-4 object-contain"
       />
@@ -263,8 +270,7 @@ const downloadWinnerPDF = () => {
                     >
                       <td className="px-6 py-4">
                         {c.symbol_url && (
-                          <img
-                            src={c.symbol_url}
+                          <img src={getImageUrl(c.symbol_url)}
                             alt="symbol"
                             className="w-10 h-10 object-contain"
                           />
@@ -332,8 +338,7 @@ const downloadWinnerPDF = () => {
 
       <div className="text-center">
         {winnerDetails.symbol_url && (
-          <img
-            src={winnerDetails.symbol_url}
+          <img src={getImageUrl(winnerDetails.symbol_url)}
             alt="Winner"
             className="w-24 h-24 mx-auto mb-4 object-contain"
           />
